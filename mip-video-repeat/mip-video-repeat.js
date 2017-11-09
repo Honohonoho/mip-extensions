@@ -10,34 +10,16 @@ define(function (require) {
     var customElem = require('customElement').create();
     customElem.prototype.firstInviewCallback = function () {
         // 先设置动态rem适配
-        (function (win, doc) {
-            var docEl = doc.documentElement;
-            function setRemUnit() {
-                var docWidth = docEl.clientWidth;
-                var rem = docWidth / 10;
-                docEl.style.fontSize = rem + 'px';
-            }
-            win.addEventListener('resize', function () {
-                setRemUnit();
-            }, false);
-            win.addEventListener('pageshow', function (e) {
-                if (e.persisted) {
-                    setRemUnit();
-                }
-            }, false);
-            setRemUnit();
-            if (win.devicePixelRatio && win.devicePixelRatio >= 2) {
-                var testEl = doc.createElement('div');
-                var fakeBody = doc.createElement('body');
-                testEl.style.border = '0.5px solid transparent';
-                fakeBody.appendChild(testEl);
-                docEl.appendChild(fakeBody);
-                if (testEl.offsetHeight === 1) {
-                    docEl.classList.add('hairlines');
-                }
-                docEl.removeChild(fakeBody);
-            }
-        })(window, document);
+        (function flexible(window, document) {
+            var dpr = window.devicePixelRatio; // 设备像素比
+            var scale = 1 / dpr; // 设置缩放
+            var clientWidth = document.documentElement.clientWidth; // 视口宽
+            document.querySelector('meta[name="viewport"]')
+            .setAttribute('content', 'width=' + dpr * clientWidth + ', initial-scale=' + scale
+                + ',maximum-scale=' + scale + ', minimum-scale=' + scale + ',user-scalable=no');
+            document.documentElement.style.fontSize = clientWidth * dpr / 10 + 'px'; // 动态设置font-size
+            document.documentElement.setAttribute('data-dpr', dpr);
+        }(window, document));
         // this.element 可取到当前实例对应的 dom 元素
         var $element = $(this.element);
         var vSrc = $element.attr('v-src');
@@ -58,20 +40,27 @@ define(function (require) {
         $element[0].appendChild(video);
         $('.rec-video-wrapper').hide();
         $('.video-mask').hide();
+        //  如果是IOS上的UC浏览器 则不播放片头片尾
+        if (platform.isIos() && platform.isUc()) {
+            video.src = targetSrc;
+            curIndex = 2;
+        }
+        else {
+            //  如果有片头并且非IOS上的QQ浏览器 则播放片头
+            if (vSrc && !(platform.isIos() && platform.isQQ())) {
+                video.src = vSrc;
+                curIndex = 1;
+            }
+            else {  //  否则直接播放内容
+                video.src = targetSrc;
+                curIndex = 2;
+            }
+        } 
         //  当前视频播放完毕
         video.onended = function () {
             curIndex += 1;
             whichShouldPlay();
         };
-        //  如果有片头并且非IOS上的QQ浏览器 则播放片头
-        if (vSrc && !(platform.isIos() && platform.isQQ())) {
-            video.src = vSrc;
-            curIndex = 1;
-        }
-        else {  //  否则直接播放内容
-            video.src = targetSrc;
-            curIndex = 2;
-        }
         // 判断是否连续播放，到片尾结束停止
         function whichShouldPlay() {
             switch (curIndex) {
@@ -108,7 +97,7 @@ define(function (require) {
             }
         }
         function showReplayPage() {
-            $('video-mask').show();
+            $('.video-mask').show();
             // 监听事件
             replayEvent();
         }
@@ -123,14 +112,20 @@ define(function (require) {
             $('.video-replay-button').on('click', function () {
                 $('.rec-video-wrapper').hide();
                 $('.video-mask').hide();
-                if (vSrc && !(platform.isIos() && platform.isQQ())) {
-                    video.src = vSrc;
-                    curIndex = 1;
-                }
-                else {
+                if (platform.isIos() && platform.isUc()) {
                     video.src = targetSrc;
                     curIndex = 2;
                 }
+                else {
+                    if (vSrc && !(platform.isIos() && platform.isQQ())) {
+                        video.src = vSrc;
+                        curIndex = 1;
+                    }
+                    else {
+                        video.src = targetSrc;
+                        curIndex = 2;
+                    }
+                } 
                 removeNode('.rec-video-wrapper');
                 removeNode('.video-mask');
                 video.play();
