@@ -9,20 +9,13 @@ define(function (require) {
     var platform = util.platform;
     var customElem = require('customElement').create();
     customElem.prototype.firstInviewCallback = function () {
-        // 先设置动态rem适配
-        (function flexible(window, document) {
-            var clientWidth = document.documentElement.clientWidth; // 视口宽
-            document.querySelector('meta[name="viewport"]')
-            .setAttribute('content', 'width=' + clientWidth + ', initial-scale=1 ,maximum-scale=1,'
-            + ' minimum-scale=1 ,user-scalable=no');
-            document.documentElement.style.fontSize = clientWidth / 10 + 'px'; // 动态设置font-size
-        }(window, document));
         // this.element 可取到当前实例对应的 dom 元素
         var $element = $(this.element);
         var vSrc = $element.attr('v-src');
         var vSrcEnd = $element.attr('v-src-end');
         var targetSrc = $element.attr('target-src');
-        var posterSrc =  $element.attr('poster-src');
+        var posterSrc = $element.attr('poster-src');
+        var autoPlay = $element.attr('auto-play');
         var playBtn = $('.video-play-button');
         var curIndex;
         //  初始化播放器
@@ -35,6 +28,12 @@ define(function (require) {
             'preload': 'no',
             'poster': posterSrc ? posterSrc : ''
         });
+        if (autoPlay === 'true') {
+            $(playBtn).hide();
+            $(video).attr({
+                autoplay: 'autoplay'
+            });
+        }
         //  初始化video的尺寸大小
         $(video).css('width', document.documentElement.clientWidth + 'px');
         $element[0].appendChild(video);
@@ -115,8 +114,6 @@ define(function (require) {
                         curIndex = 2;
                     }
                 }
-                removeNode('.rec-video-wrapper');
-                removeNode('.video-mask');
                 video.play();
             });
         }
@@ -178,7 +175,8 @@ define(function (require) {
                     video.src = vSrc;
                     curIndex = 1;
                 }
-                else {  //  否则直接播放内容
+                //  否则直接播放内容
+                else {
                     video.src = targetSrc;
                     curIndex = 2;
                 }

@@ -15,6 +15,7 @@ mip-video-repeat 实现了带片头片尾和重播功能的视频组件
     v-src-end="http://img.vodjk.com/templates/vodjk/images/ad-shipin/ad-pc-qfk.mp4"
     target-src="http://dianbo.vodjk.com/vod/xinma/jbl/wgk/2016/04/20/499DBA6FFCD74fc195C4C59859BDA08C.mp4"
     poster-src="https://www.idongde.com/upload/content/images/1505904946029746.jpg"
+    auto-play="true"
     rec-video='[
                    {
                     "recTitle":"测试测试测试测试测试测试测试测试测试测试测试",
@@ -81,6 +82,11 @@ mip-video-repeat 实现了带片头片尾和重播功能的视频组件
 必选项：否                               
 类型：string
 
+### auto-play
+说明：自动播放，true为自动播放，false为不自动播放                                                                           
+必选项：否                              
+类型：string
+
 ### rec-video
 说明：片尾结束显示的相关推荐视频                        
 必选项：否                       
@@ -103,7 +109,6 @@ mip-video-repeat 实现了带片头片尾和重播功能的视频组件
 
 ## 注意事项  
 - 仅支持移动端，强行使用pc端打开可能会有布局混乱的风险
-- 在组件中实现了rem适配,以iPhone 6为基准，则1rem = 37.5px
 - mip-video-repeat标签如果不添加rec-video属性，则只会显示重播按钮，同时可以删除<div class="rec-video-wrapper">...</div>
 - class="rec-video-wrapper"标签包含相关视频和重播
 - class="video-mask"标签只包含重播
